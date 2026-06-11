@@ -10,6 +10,73 @@ function clean_text($value) {
 }
 
 
+
+function normalize_phone($phone) {
+    $phone = trim($phone);
+    if ($phone === '') {
+        return '';
+    }
+    if (strpos($phone, '+') === 0) {
+        return preg_replace('/[^+0-9]/', '', $phone);
+    }
+    $digits = preg_replace('/\D+/', '', $phone);
+    if (strlen($digits) === 10) {
+        return '+1' . $digits;
+    }
+    if (strlen($digits) === 11 && strpos($digits, '1') === 0) {
+        return '+' . $digits;
+    }
+    return $phone;
+}
+
+function send_twilio_sms($to_phone, $name) {
+    $config_path = __DIR__ . '/config/twilio.php';
+    if (!file_exists($config_path)) {
+        return 'missing_config';
+    }
+    $config = include $config_path;
+    $sid = $config['account_sid'] ?? '';
+    $token = $config['auth_token'] ?? '';
+    $from = $config['from_number'] ?? '';
+    if ($sid === '' || $token === '' || $from === '') {
+        return 'missing_config_values';
+    }
+    if (!function_exists('curl_init')) {
+        return 'missing_curl';
+    }
+
+    $to = normalize_phone($to_phone);
+    if ($to === '') {
+        return 'missing_phone';
+    }
+
+    $first = trim(explode(' ', trim($name))[0] ?? '');
+    $greeting = $first !== '' ? "Hi {$first}" : 'Hi';
+    $body = $greeting . ", this is Apollo PV Designs. Thanks for requesting solar info. I can help collect a few details so we can review your project. Is this for a home or business? Reply STOP to opt out.";
+
+    $url = 'https://api.twilio.com/2010-04-01/Accounts/' . rawurlencode($sid) . '/Messages.json';
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+        'From' => $from,
+        'To' => $to,
+        'Body' => $body,
+    ]));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+    curl_setopt($ch, CURLOPT_USERPWD, $sid . ':' . $token);
+    $response = curl_exec($ch);
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    if ($response === false || $status < 200 || $status >= 300) {
+        throw new Exception('Twilio API error ' . $status . ': ' . ($error ?: $response));
+    }
+    $decoded = json_decode($response, true);
+    return 'sms_' . ($decoded['sid'] ?? 'sent');
+}
+
 function hubspot_request($method, $path, $token, $payload = null) {
     $url = 'https://api.hubapi.com' . $path;
     $ch = curl_init($url);
@@ -208,10 +275,22 @@ try {
     file_put_contents($storage_dir . '/hubspot-errors.log', '[' . $submitted_at . '] ' . $e->getMessage() . "\n", FILE_APPEND);
 }
 
-// Even if mail or HubSpot fails, the CSV backup should keep the inquiry retrievable.
-$query = $mail_sent ? '?sent=1' : '?saved=1';
-if (strpos($hubspot_status, 'deal_') === 0) {
-    $query = '?sent=1&hubspot=1';
+$sms_status = 'not_attempted';
+try {
+    $sms_status = send_twilio_sms($phone, $name);
+} catch (Exception $e) {
+    $sms_status = 'error';
+    file_put_contents($storage_dir . '/twilio-errors.log', '[' . $submitted_at . '] ' . $e->getMessage() . "\n", FILE_APPEND);
 }
-header('Location: /thank-you.html' . $query);
+
+// Even if mail, HubSpot, or SMS fails, the CSV backup should keep the inquiry retrievable.
+$query_parts = [];
+$query_parts[] = $mail_sent ? 'sent=1' : 'saved=1';
+if (strpos($hubspot_status, 'deal_') === 0) {
+    $query_parts[] = 'hubspot=1';
+}
+if (strpos($sms_status, 'sms_') === 0) {
+    $query_parts[] = 'sms=1';
+}
+header('Location: /thank-you.html?' . implode('&', $query_parts));
 exit;

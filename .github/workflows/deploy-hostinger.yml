@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create server-side HubSpot config
+      - name: Create server-side integration config
         shell: bash
         run: |
           mkdir -p config
@@ -24,6 +24,14 @@ jobs:
               'token' => '${{ secrets.HUBSPOT_PRIVATE_APP_TOKEN }}',
               'pipeline_id' => '2346115797',
               'stage_id' => '3823191778',
+          ];
+          PHP
+          cat > config/twilio.php <<'PHP'
+          <?php
+          return [
+              'account_sid' => '${{ secrets.TWILIO_ACCOUNT_SID }}',
+              'auth_token' => '${{ secrets.TWILIO_AUTH_TOKEN }}',
+              'from_number' => '${{ secrets.TWILIO_FROM_NUMBER }}',
           ];
           PHP
 

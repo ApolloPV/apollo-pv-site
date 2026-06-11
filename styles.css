@@ -426,7 +426,7 @@ ul { padding-left: 1.2rem; margin: 0; }
   gap: 16px;
 }
 .contact-form label { display: grid; gap: 7px; font-weight: 800; color: var(--charcoal); }
-.contact-form label:has(textarea), .contact-form button { grid-column: 1 / -1; }
+.contact-form label:has(textarea), .contact-form button, .sms-consent { grid-column: 1 / -1; }
 .contact-form input, .contact-form select, .contact-form textarea {
   width: 100%;
   border: 1px solid var(--line);
@@ -440,6 +440,7 @@ ul { padding-left: 1.2rem; margin: 0; }
   outline: 3px solid rgba(217, 65, 53, 0.18);
   border-color: var(--solar-red);
 }
+.sms-consent { color: var(--muted); font-size: 0.88rem; line-height: 1.45; }
 .hidden-field { display: none; }
 
 .thank-you-page {
