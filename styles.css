@@ -72,6 +72,7 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 16px 34px rgba(217, 65, 53, 0.24);
 }
 .button:hover { transform: translateY(-1px); }
+.button-red-test { background: #e50914; box-shadow: 0 16px 34px rgba(229, 9, 20, 0.28); }
 .button-secondary { background: var(--white); color: var(--solar-red); border: 1px solid var(--line); box-shadow: none; }
 .button-small { min-height: 40px; padding: 0 16px; font-size: 0.92rem; }
 
