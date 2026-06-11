@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Apollo PV Designs | Nationwide Solar Design & Engineering</title>
+    <meta
+      name="description"
+      content="Apollo PV Designs provides nationwide solar design and engineering services with permitting, interconnection, consulting, and site survey support."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="#top" aria-label="Apollo PV Designs home">
+          <img class="brand-logo" src="assets/logo-transparent.png" alt="Apollo PV Designs" />
+        </a>
+        <div class="nav-links">
+          <a href="#services">Services</a>
+          <a href="#markets">Markets</a>
+          <a href="#process">Process</a>
+          <a class="button button-small" href="#contact">Request a Quote</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-content">
+          <p class="eyebrow">Nationwide solar design & engineering services</p>
+          <h1>Reliable PV design and engineering packages built for fast-moving solar projects.</h1>
+          <p class="hero-copy">
+            Apollo PV Designs delivers accurate, permit-ready solar plan sets with engineering-focused review, clear communication, and practical support from site information through approval.
+          </p>
+          <div class="hero-actions">
+            <a class="button" href="#contact">Start a Project</a>
+            <a class="button button-secondary" href="#services">View Services</a>
+          </div>
+        </div>
+        <aside class="hero-card" aria-label="Apollo PV Designs capabilities">
+          <img class="hero-logo" src="assets/logo-transparent.png" alt="Apollo PV Designs" />
+          <h2>Clean packages. Clear timelines. Fewer delays.</h2>
+          <ul>
+            <li>PV design and plan sets</li>
+            <li>Engineering coordination</li>
+            <li>Permit and AHJ documentation</li>
+            <li>Interconnection support</li>
+          </ul>
+        </aside>
+      </section>
+
+      <section class="section" id="services">
+        <div class="section-heading">
+          <p class="eyebrow">Services</p>
+          <h2>Technical documentation for solar projects that need to move.</h2>
+          <p>
+            We focus on the details that determine whether a solar package is complete, buildable, and ready for review: design accuracy, engineering coordination, utility requirements, and AHJ expectations.
+          </p>
+        </div>
+        <div class="grid cards">
+          <article class="card card-feature"><h3>Engineering</h3><p>Engineering coordination and technical review to help keep PV packages complete, compliant, and ready for approval.</p></article>
+          <article class="card card-feature"><h3>Designing</h3><p>Solar layouts, electrical design packages, and permit-ready plan sets tailored to site conditions and project scope.</p></article>
+          <article class="card"><h3>Permitting</h3><p>AHJ-ready documentation prepared to support efficient permit submission and revision workflows.</p></article>
+          <article class="card"><h3>Interconnection</h3><p>Utility-facing documentation support for applications, reviews, and project requirements.</p></article>
+          <article class="card"><h3>Site Survey</h3><p>Survey review and site information workflows that reduce redesigns and avoidable delays.</p></article>
+          <article class="card"><h3>Consulting</h3><p>Practical technical guidance for feasibility, documentation standards, and process improvement.</p></article>
+        </div>
+      </section>
+
+      <section class="section split" id="markets">
+        <div>
+          <p class="eyebrow">Markets</p>
+          <h2>Residential, commercial, and industrial PV support.</h2>
+        </div>
+        <div>
+          <p>
+            Apollo PV Designs supports solar projects nationwide with responsive design and engineering documentation. The goal is simple: dependable packages, fewer review issues, and smoother handoffs from design to approval.
+          </p>
+          <ul class="check-list">
+            <li>Residential PV plan sets and design support</li>
+            <li>Commercial and industrial solar documentation</li>
+            <li>Design-through-approval project support</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section process" id="process">
+        <div class="section-heading">
+          <p class="eyebrow">Process</p>
+          <h2>A straightforward process built around accuracy and turnaround.</h2>
+        </div>
+        <div class="steps">
+          <div class="step"><span>1</span><h3>Share the scope</h3><p>Send site information, project requirements, utility details, AHJ notes, and deadline expectations.</p></div>
+          <div class="step"><span>2</span><h3>We develop the package</h3><p>Apollo PV Designs prepares the design, engineering, permitting, or interconnection documentation.</p></div>
+          <div class="step"><span>3</span><h3>Review, revise, approve</h3><p>We support comments and revisions so the project can continue moving toward approval.</p></div>
+        </div>
+      </section>
+
+      <section class="contact-section" id="contact">
+        <div class="contact-copy">
+          <p class="eyebrow">Get started</p>
+          <h2>Need reliable solar design or engineering support?</h2>
+          <p>Tell us what you’re working on and what documentation you need. We’ll review the scope and respond with next steps.</p>
+        </div>
+        <form class="contact-form" name="project-inquiry" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/thank-you.html">
+          <input type="hidden" name="form-name" value="project-inquiry" />
+          <p class="hidden-field">
+            <label>Don’t fill this out if you’re human: <input name="bot-field" /></label>
+          </p>
+          <label>
+            Name
+            <input type="text" name="name" autocomplete="name" required />
+          </label>
+          <label>
+            Company
+            <input type="text" name="company" autocomplete="organization" />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" autocomplete="email" required />
+          </label>
+          <label>
+            Phone
+            <input type="tel" name="phone" autocomplete="tel" />
+          </label>
+          <label>
+            Project type
+            <select name="project_type">
+              <option value="">Select one</option>
+              <option>Residential</option>
+              <option>Commercial</option>
+              <option>Industrial</option>
+              <option>Multiple / ongoing pipeline</option>
+            </select>
+          </label>
+          <label>
+            How can we help?
+            <textarea name="message" rows="5" placeholder="Tell us about the project type, location, timeline, and design or engineering support needed." required></textarea>
+          </label>
+          <button class="button" type="submit">Submit Project Inquiry</button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>© <span id="year"></span> Apollo PV Designs. Nationwide solar design and engineering services.</p>
+    </footer>
+
+    <script>
+      document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
