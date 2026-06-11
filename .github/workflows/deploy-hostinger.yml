@@ -35,20 +35,27 @@ jobs:
           ];
           PHP
 
-      - name: Deploy via FTP/SFTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
-          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
-          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
-          server-dir: ${{ secrets.HOSTINGER_SERVER_DIR }}
-          state-name: .ftp-deploy-sync-state-apollo-pv.json
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github/**
-            submissions/
-            submissions/**
-            **/submissions/**
-            README.md
-            DEPLOYMENT.md
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Deploy via FTP
+        shell: bash
+        env:
+          FTP_SERVER: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          SERVER_DIR: ${{ secrets.HOSTINGER_SERVER_DIR }}
+        run: |
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" <<EOF
+          set ftp:ssl-allow no
+          set net:timeout 20
+          set net:max-retries 3
+          mirror -R --only-newer --verbose \
+            --exclude-glob .git/** \
+            --exclude-glob .github/** \
+            --exclude-glob submissions/** \
+            --exclude-glob README.md \
+            --exclude-glob DEPLOYMENT.md \
+            ./ "$SERVER_DIR"
+          bye
+          EOF
