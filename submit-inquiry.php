@@ -69,6 +69,14 @@ $storage_dir = __DIR__ . '/submissions';
 if (!is_dir($storage_dir)) {
     mkdir($storage_dir, 0755, true);
 }
+$deny_file = $storage_dir . '/.htaccess';
+if (!file_exists($deny_file)) {
+    file_put_contents($deny_file, "Require all denied\n");
+}
+$index_file = $storage_dir . '/index.html';
+if (!file_exists($index_file)) {
+    file_put_contents($index_file, "<!doctype html><title>Not found</title>\n");
+}
 
 $csv_path = $storage_dir . '/inquiries.csv';
 $is_new_file = !file_exists($csv_path);
