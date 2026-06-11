@@ -38,5 +38,6 @@ jobs:
             **/.git*
             **/.git*/**
             **/.github/**
+            submissions/**
             README.md
             DEPLOYMENT.md
