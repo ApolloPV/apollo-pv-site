@@ -9,6 +9,115 @@ function clean_text($value) {
     return $value;
 }
 
+
+function hubspot_request($method, $path, $token, $payload = null) {
+    $url = 'https://api.hubapi.com' . $path;
+    $ch = curl_init($url);
+    $headers = [
+        'Authorization: Bearer ' . $token,
+        'Content-Type: application/json',
+    ];
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+    if ($payload !== null) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+    }
+    $body = curl_exec($ch);
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    if ($body === false || $status < 200 || $status >= 300) {
+        throw new Exception('HubSpot API error ' . $status . ': ' . ($error ?: $body));
+    }
+    return json_decode($body, true);
+}
+
+function push_to_hubspot($name, $email, $phone, $project_type, $location, $need, $message, $submitted_at) {
+    $config_path = __DIR__ . '/config/hubspot.php';
+    if (!file_exists($config_path)) {
+        return 'missing_config';
+    }
+    $config = include $config_path;
+    $token = $config['token'] ?? '';
+    $pipeline_id = $config['pipeline_id'] ?? '';
+    $stage_id = $config['stage_id'] ?? '';
+    if ($token === '' || $pipeline_id === '' || $stage_id === '') {
+        return 'missing_config_values';
+    }
+    if (!function_exists('curl_init')) {
+        return 'missing_curl';
+    }
+
+    $parts = preg_split('/\s+/', trim($name), 2);
+    $firstname = $parts[0] ?? $name;
+    $lastname = $parts[1] ?? '';
+
+    $search = hubspot_request('POST', '/crm/v3/objects/contacts/search', $token, [
+        'filterGroups' => [[
+            'filters' => [[
+                'propertyName' => 'email',
+                'operator' => 'EQ',
+                'value' => $email,
+            ]],
+        ]],
+        'properties' => ['email', 'firstname', 'lastname', 'phone'],
+        'limit' => 1,
+    ]);
+
+    $contact_props = [
+        'email' => $email,
+        'firstname' => $firstname,
+        'lastname' => $lastname,
+        'phone' => $phone,
+        'lifecyclestage' => 'lead',
+        'hs_lead_status' => 'NEW',
+    ];
+
+    if (!empty($search['results'][0]['id'])) {
+        $contact_id = $search['results'][0]['id'];
+        hubspot_request('PATCH', '/crm/v3/objects/contacts/' . $contact_id, $token, ['properties' => $contact_props]);
+    } else {
+        $created = hubspot_request('POST', '/crm/v3/objects/contacts', $token, ['properties' => $contact_props]);
+        $contact_id = $created['id'];
+    }
+
+    $deal_description = "Website solar inquiry submitted {$submitted_at}
+
+"
+        . "Name: {$name}
+Email: {$email}
+Phone: {$phone}
+"
+        . "Property type: {$project_type}
+Project location: {$location}
+Need: {$need}
+
+"
+        . "Project details:
+{$message}";
+
+    $deal = hubspot_request('POST', '/crm/v3/objects/deals', $token, [
+        'properties' => [
+            'dealname' => 'Website Inquiry - ' . $name,
+            'pipeline' => $pipeline_id,
+            'dealstage' => $stage_id,
+            'description' => substr($deal_description, 0, 6000),
+        ],
+        'associations' => [[
+            'to' => ['id' => $contact_id],
+            'types' => [[
+                'associationCategory' => 'HUBSPOT_DEFINED',
+                'associationTypeId' => 3,
+            ]],
+        ]],
+    ]);
+
+    return 'deal_' . ($deal['id'] ?? 'created');
+}
+
 function fail_request($message) {
     http_response_code(400);
     header('Content-Type: text/plain; charset=utf-8');
@@ -91,6 +200,18 @@ if ($fh) {
 
 $mail_sent = mail($to, $subject, $body, implode("\r\n", $headers));
 
-// Even if mail fails, the CSV backup should keep the inquiry retrievable.
-header('Location: /thank-you.html' . ($mail_sent ? '?sent=1' : '?saved=1'));
+$hubspot_status = 'not_attempted';
+try {
+    $hubspot_status = push_to_hubspot($name, $email, $phone, $project_type, $location, $need, $message, $submitted_at);
+} catch (Exception $e) {
+    $hubspot_status = 'error';
+    file_put_contents($storage_dir . '/hubspot-errors.log', '[' . $submitted_at . '] ' . $e->getMessage() . "\n", FILE_APPEND);
+}
+
+// Even if mail or HubSpot fails, the CSV backup should keep the inquiry retrievable.
+$query = $mail_sent ? '?sent=1' : '?saved=1';
+if (strpos($hubspot_status, 'deal_') === 0) {
+    $query = '?sent=1&hubspot=1';
+}
+header('Location: /thank-you.html' . $query);
 exit;

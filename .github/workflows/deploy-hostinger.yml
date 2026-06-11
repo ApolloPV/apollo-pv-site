@@ -14,6 +14,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Create server-side HubSpot config
+        shell: bash
+        run: |
+          mkdir -p config
+          cat > config/hubspot.php <<'PHP'
+          <?php
+          return [
+              'token' => '${{ secrets.HUBSPOT_PRIVATE_APP_TOKEN }}',
+              'pipeline_id' => '2346115797',
+              'stage_id' => '3823191778',
+          ];
+          PHP
+
       - name: Deploy via FTP/SFTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
