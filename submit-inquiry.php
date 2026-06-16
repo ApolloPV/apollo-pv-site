@@ -29,6 +29,23 @@ function normalize_phone($phone) {
     return $phone;
 }
 
+function append_sms_log($direction, $from, $to, $body, $message_sid, $sms_status = '') {
+    $storage_dir = __DIR__ . '/submissions';
+    if (!is_dir($storage_dir)) {
+        mkdir($storage_dir, 0755, true);
+    }
+    $csv_path = $storage_dir . '/sms-messages.csv';
+    $is_new_file = !file_exists($csv_path);
+    $fh = fopen($csv_path, 'a');
+    if ($fh) {
+        if ($is_new_file) {
+            fputcsv($fh, ['submitted_at', 'direction', 'from', 'to', 'body', 'message_sid', 'sms_status']);
+        }
+        fputcsv($fh, [gmdate('Y-m-d H:i:s') . ' UTC', $direction, $from, $to, $body, $message_sid, $sms_status]);
+        fclose($fh);
+    }
+}
+
 function send_twilio_sms($to_phone, $name) {
     $config_path = __DIR__ . '/config/twilio.php';
     if (!file_exists($config_path)) {
@@ -74,7 +91,9 @@ function send_twilio_sms($to_phone, $name) {
         throw new Exception('Twilio API error ' . $status . ': ' . ($error ?: $response));
     }
     $decoded = json_decode($response, true);
-    return 'sms_' . ($decoded['sid'] ?? 'sent');
+    $message_sid = $decoded['sid'] ?? 'sent';
+    append_sms_log('outbound', $from, $to, $body, $message_sid, $decoded['status'] ?? 'queued');
+    return 'sms_' . $message_sid;
 }
 
 function hubspot_request($method, $path, $token, $payload = null) {
